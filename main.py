@@ -1,9 +1,20 @@
 import os
 import json
 import csv
-from tkinter import Tk, Canvas, Button, filedialog, simpledialog, Toplevel, Label, Entry, messagebox
-from pdf2image import convert_from_path
+from tkinter import (
+    Tk,
+    Canvas,
+    Button,
+    filedialog,
+    simpledialog,
+    Toplevel,
+    Label,
+    Entry,
+    messagebox,
+    Spinbox,
+)
 from PIL import Image, ImageTk
+from ocr_utils import convert_page
 import pytesseract
 
 
@@ -16,6 +27,8 @@ class PDFFormOCR:
 
         self.open_btn = Button(root, text="Open PDF", command=self.open_pdf)
         self.open_btn.pack(side="left")
+        self.page_spin = Spinbox(root, from_=1, to=9999, width=5)
+        self.page_spin.pack(side="left")
         self.setup_btn = Button(root, text="Setup Fields", command=self.setup_fields)
         self.setup_btn.pack(side="left")
         self.extract_btn = Button(root, text="Extract Data", command=self.extract_data)
@@ -52,9 +65,16 @@ class PDFFormOCR:
         if not path:
             return
         self.pdf_path = path
-        images = convert_from_path(path, first_page=1, last_page=1)
-        if images:
-            self.image = images[0]
+        try:
+            page = int(self.page_spin.get())
+        except Exception:
+            page = 1
+            self.page_spin.delete(0, "end")
+            self.page_spin.insert(0, "1")
+
+        img = convert_page(path, page)
+        if img:
+            self.image = img
             self.display_image()
         self.load_mapping()
 
